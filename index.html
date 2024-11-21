@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Список пацієнтів</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>📋 Облік відвідувань</h1>
+    <nav>
+      <a href="index.html" class="active">Пацієнти</a>
+      <a href="schedule.html">Графік роботи</a>
+    </nav>
+  </header>
+  <main>
+    <div class="controls">
+      <button id="add-patient-btn">➕ Додати пацієнта</button>
+    </div>
+    <div class="table-container">
+      <table id="patients-table">
+        <thead>
+          <tr>
+            <th>Ім'я</th>
+            <th>Вік</th>
+            <th>Контакт</th>
+            <th>Дата останнього візиту</th>
+            <th>Дії</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Дані будуть динамічно заповнені через JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Модальне вікно -->
+  <div id="patient-modal" class="modal">
+    <div class="modal-content">
+      <span id="close-modal" class="close">&times;</span>
+      <h2 id="modal-title">Додати пацієнта</h2>
+      <form id="patient-form">
+        <label>
+          <span>Ім'я:</span>
+          <input type="text" id="patient-name" required>
+        </label>
+        <label>
+          <span>Вік:</span>
+          <input type="number" id="patient-age" required>
+        </label>
+        <label>
+          <span>Контакт:</span>
+          <input type="text" id="patient-contact" required>
+        </label>
+        <label>
+          <span>Дата останнього візиту:</span>
+          <input type="date" id="patient-visit" required>
+        </label>
+        <button type="submit" class="submit-btn">Зберегти</button>
+      </form>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

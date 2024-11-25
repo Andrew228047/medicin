@@ -38,4 +38,70 @@ header {
     font-size: 16px;
     margin: 5px 0;
   }
+  /* Загальні стилі */
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+/* Стилі для основного контейнера */
+main {
+  max-width: 800px;
+  margin: 30px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Заголовки секцій */
+.section-title {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.section-title::before {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 100%;
+  background-color: #3498db;
+  margin-right: 10px;
+}
+
+/* Список графіків */
+.schedule-list, .duty-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.schedule-item, .duty-item {
+  padding: 15px;
+  background-color: #e3f2fd;
+  border-left: 5px solid #3498db;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.schedule-item:hover, .duty-item:hover {
+  background-color: #bbdefb;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Роздільник між секціями */
+.divider {
+  margin: 30px 0;
+  border: none;
+  border-top: 2px dashed #bbb;
+}
+
   

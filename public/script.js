@@ -1,31 +1,144 @@
-// Завантаження пацієнтів із localStorage
-let patients = JSON.parse(localStorage.getItem("patients")) || [];
-
-// Отримання елементів DOM
-const tableBody = document.querySelector("#patients-table tbody");
-const modal = new bootstrap.Modal(document.getElementById("patient-modal"));
-const patientForm = document.getElementById("patient-form");
-
-const nameInput = document.getElementById("patient-name");
-const ageInput = document.getElementById("patient-age");
-const contactInput = document.getElementById("patient-contact");
-const visitInput = document.getElementById("patient-visit");
-const diseaseInput = document.getElementById("patient-disease");
-
-let editingPatientId = null; // Для режиму редагування
-
-// Збереження пацієнтів у localStorage
-function saveToLocalStorage() {
-  localStorage.setItem("patients", JSON.stringify(patients));
+// Завантаження пацієнтів через API
+async function fetchPatients() {
+  try {
+    const response = await fetch('/api/patients');
+    const data = await response.json();
+    renderPatients(data);
+  } catch (error) {
+    console.error('Помилка при завантаженні пацієнтів:', error);
+  }
 }
 
-// Відображення списку пацієнтів
-function renderPatients() {
+// Відображення пацієнтів на сторінці
+function renderPatients(patients) {
+  const tableBody = document.querySelector("#patients-table tbody");
   tableBody.innerHTML = ""; // Очищаємо таблицю перед рендерингом
+
   patients.forEach(patient => {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td><a href="details.html?id=${patient.id}" class="patient-link">${patient.name}</a></td>
+      <td><a> ${patient.name}</a></td>
+      <td>${patient.age}</td>
+      <td>${patient.contact}</td>
+      <td>${patient.lastVisit}</td>
+      <td>
+        <button class="btn btn-warning btn-sm me-2" onclick="editPatient(${patient.id})">✏️ Редагувати</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePatient(${patient.id})">🗑️ Видалити</button>
+      </td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+function formatDate(isoDate) {
+  const date = new Date(isoDate);
+  return date.toLocaleDateString('uk-UA', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+// Додавання нового пацієнта через API
+async function addPatient(patient) {
+  try {
+    const response = await fetch('/api/patients', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(patient)
+    });
+
+    const newPatient = await response.json();
+    renderPatients([newPatient]);
+  } catch (error) {
+    console.error('Помилка при додаванні пацієнта:', error);
+  }
+}
+
+// Збереження пацієнта (новий або відредагований)
+async function savePatient(event) {
+  event.preventDefault();
+
+  const newPatient = {
+    name: document.getElementById("patient-name").value,
+    age: parseInt(document.getElementById("patient-age").value),
+    contact: document.getElementById("patient-contact").value,
+    lastVisit: document.getElementById("patient-visit").value,
+    disease: document.getElementById("patient-disease").value || "Інформація відсутня"
+  };
+
+  if (editingPatientId) {
+    // Оновлення існуючого пацієнта через API
+    await updatePatient(editingPatientId, newPatient);
+  } else {
+    // Додавання нового пацієнта через API
+    await addPatient(newPatient);
+  }
+
+  // Закриваємо модальне вікно після збереження
+  const modal = new bootstrap.Modal(document.getElementById("patient-modal"));
+  modal.hide();
+  patientForm.reset(); // Очищуємо форму
+  editingPatientId = null;
+}
+
+// Оновлення існуючого пацієнта через API
+async function updatePatient(id, patient) {
+  try {
+    const response = await fetch(`/api/patients/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(patient)
+    });
+
+    const updatedPatient = await response.json();
+    fetchPatients(); // Оновлюємо список пацієнтів після оновлення
+  } catch (error) {
+    console.error('Помилка при оновленні пацієнта:', error);
+  }
+}
+
+// Редагування пацієнта
+function editPatient(id) {
+  editingPatientId = id;
+
+  // Отримуємо дані пацієнта для редагування
+  fetch(`/api/patients/${id}`)
+    .then(response => response.json())
+    .then(patient => {
+      document.getElementById("patient-name").value = patient.name;
+      document.getElementById("patient-age").value = patient.age;
+      document.getElementById("patient-contact").value = patient.contact;
+      document.getElementById("patient-visit").value = patient.lastVisit;
+      document.getElementById("patient-disease").value = patient.disease || "";
+      const modal = new bootstrap.Modal(document.getElementById("patient-modal"));
+      modal.show(); // Відкриваємо модальне вікно
+    })
+    .catch(error => console.error('Помилка при отриманні пацієнта:', error));
+}
+
+// Видалення пацієнта
+async function deletePatient(id) {
+  try {
+    await fetch(`/api/patients/${id}`, {
+      method: 'DELETE'
+    });
+    fetchPatients(); // Оновлюємо список пацієнтів після видалення
+  } catch (error) {
+    console.error('Помилка при видаленні пацієнта:', error);
+  }
+}
+function renderPatients(patients) {
+  const tableBody = document.querySelector("#patients-table tbody");
+  tableBody.innerHTML = ""; // Очищення таблиці
+
+  patients.forEach(patient => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><a href="/patient.html?id=${patient.id}">${patient.name}</a></td>
       <td>${patient.age}</td>
       <td>${patient.contact}</td>
       <td>${patient.lastVisit}</td>
@@ -38,73 +151,16 @@ function renderPatients() {
   });
 }
 
-// Додавання нового пацієнта
-function addPatient(patient) {
-  patient.id = Date.now(); // Генеруємо унікальний ID
-  patients.push(patient);
-  saveToLocalStorage();
-  renderPatients();
-}
-
-// Редагування пацієнта
-function editPatient(id) {
-  const patient = patients.find(p => p.id === id);
-  if (!patient) return;
-
-  // Заповнення форми даними пацієнта
-  nameInput.value = patient.name;
-  ageInput.value = patient.age;
-  contactInput.value = patient.contact;
-  visitInput.value = patient.lastVisit;
-  diseaseInput.value = patient.disease || "";
-
-  editingPatientId = id;
-  modal.show(); // Відкриваємо модальне вікно
-}
-
-// Видалення пацієнта
-function deletePatient(id) {
-  patients = patients.filter(patient => patient.id !== id);
-  saveToLocalStorage();
-  renderPatients();
-}
-
-// Збереження змін або нового пацієнта
-function savePatient(event) {
-  event.preventDefault();
-
-  const newPatient = {
-    name: nameInput.value,
-    age: parseInt(ageInput.value),
-    contact: contactInput.value,
-    lastVisit: visitInput.value,
-    disease: diseaseInput.value || "Інформація відсутня"
-  };
-
-  if (editingPatientId) {
-    // Оновлення існуючого пацієнта
-    patients = patients.map(patient =>
-      patient.id === editingPatientId ? { ...newPatient, id: patient.id } : patient
-    );
-  } else {
-    // Додавання нового пацієнта
-    addPatient(newPatient);
-  }
-
-  saveToLocalStorage();
-  modal.hide(); // Закриваємо модальне вікно
-  editingPatientId = null;
-  patientForm.reset(); // Очищуємо форму
-}
 
 // Події
 document.getElementById("add-patient-btn").addEventListener("click", () => {
-  editingPatientId = null; // Очищуємо режим редагування
-  patientForm.reset(); // Очищуємо форму
+  editingPatientId = null; // Очищаємо режим редагування
+  document.getElementById("patient-form").reset(); // Очищуємо форму
+  const modal = new bootstrap.Modal(document.getElementById("patient-modal"));
   modal.show(); // Відкриваємо модальне вікно
 });
 
-patientForm.addEventListener("submit", savePatient);
+document.getElementById("patient-form").addEventListener("submit", savePatient);
 
 // Початковий рендеринг пацієнтів
-renderPatients();
+fetchPatients();
